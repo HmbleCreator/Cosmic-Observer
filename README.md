@@ -23,7 +23,7 @@ Cosmic Observer is a Python-powered Flask web application designed to immerse us
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/cosmic-observer.git
+   git clone https://github.com/HmbleCreator/cosmic-observer.git
    cd cosmic-observer
    ```
 
@@ -64,8 +64,14 @@ Cosmic Observer is a Python-powered Flask web application designed to immerse us
 - Aurora Visibility: Calculated based on KP index and user location
 
 ## 📷 Screenshots
+![Screenshot 2025-04-14 192911](https://github.com/user-attachments/assets/5d9c5b18-9957-4881-9bd8-02cf7e5b3728)
+![Screenshot 2025-04-14 193010](https://github.com/user-attachments/assets/2a957417-ac18-49b0-97db-1ac77601e71f)
+![Screenshot 2025-04-14 193030](https://github.com/user-attachments/assets/984701d6-5409-4df0-bf3b-81c1470d923c)
+![Screenshot 2025-04-14 193101](https://github.com/user-attachments/assets/e9d6a148-f88a-4107-9a00-a41f62c364ea)
 
-*[Add screenshots of your application here]*
+![Screenshot 2025-04-14 193152](https://github.com/user-attachments/assets/9169ceeb-a6ea-4c5f-af69-d599d9201abf)
+![Screenshot 2025-04-14 193205](https://github.com/user-attachments/assets/bd37eca9-4a43-439c-ade1-4f2ae37ef00c)
+
 
 ## 📝 License
 
