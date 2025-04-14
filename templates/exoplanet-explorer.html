@@ -1,14 +1,11 @@
-<!-- templates/exoplanet_explorer.html - Exoplanet Explorer -->
+<!-- templates/exoplanet-explorer.html - Exoplanet Explorer -->
 {% extends "layout.html" %}
-
 {% block title %}Exoplanet Explorer{% endblock %}
-
 {% block content %}
 <div class="card">
     <h2><i class="fas fa-globe"></i> Exoplanet Explorer</h2>
     <p>Search and visualize exoplanets based on their characteristics. Filter by star type, planet mass, distance from Earth, and habitability score.</p>
 </div>
-
 <form method="post" action="/exoplanet-explorer">
     <div class="form-row">
         <div class="form-group">
@@ -58,7 +55,6 @@
     
     <button type="submit" class="btn"><i class="fas fa-search"></i> Search Exoplanets</button>
 </form>
-
 {% if exoplanet_chart %}
 <div class="card">
     <h2>Exoplanet Visualization</h2>
@@ -66,6 +62,7 @@
     <p><small>Bubble size represents planet radius. Color represents habitability score (greener = more habitable).</small></p>
 </div>
 
+<!-- Updated Results Table with Pagination -->
 <div class="card">
     <h2>Exoplanet Results</h2>
     {% if exoplanet_data %}
@@ -81,25 +78,79 @@
                 <th>Habitability</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="planet-table-body">
             {% for planet in exoplanet_data %}
-            <tr>
+            <tr class="planet-row" data-planet="{{ planet.pl_name }}" style="display: none;">
                 <td>{{ planet.pl_name }}</td>
-                <td>{{ planet.st_spectype }}</td>
-                <td>{{ "%.2f"|format(planet.pl_masse) }}</td>
-                <td>{{ "%.2f"|format(planet.pl_rade) }}</td>
-                <td>{{ "%.1f"|format(planet.st_dist) }}</td>
-                <td>{{ "%.1f"|format(planet.pl_orbper) }}</td>
-                <td>{{ "%.1f"|format(planet.habitability_score) }}%</td>
+                <td>{{ planet.st_spectype if planet.st_spectype else 'N/A' }}</td>
+                <td>{{ "%.2f"|format(planet['Planet Mass']) if planet['Planet Mass'] is not none else 'N/A' }}</td>
+                <td>{{ "%.2f"|format(planet['Planet Radius']) if planet['Planet Radius'] is not none else 'N/A' }}</td>
+                <td>{{ "%.1f"|format(planet['Distance']) if planet['Distance'] is not none else 'N/A' }}</td>
+                <td>{{ "%.1f"|format(planet.pl_orbper) if planet.pl_orbper is not none else 'N/A' }}</td>
+                <td>{{ "%.1f"|format(planet['Habitability Score']) if planet['Habitability Score'] is not none else 'N/A' }}%</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    
+    <div class="pagination">
+        <button id="prev-page" class="btn-small"><i class="fas fa-chevron-left"></i> Previous</button>
+        <span id="page-info">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+        <button id="next-page" class="btn-small">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
     {% else %}
     <p>No exoplanets found matching your criteria.</p>
     {% endif %}
 </div>
+
+<!-- Planet Detail Card (Initially Hidden) -->
+<div class="card" id="planet-detail-card" style="display: none;">
+    <h2>Planet Details <button id="close-detail" class="btn-small"><i class="fas fa-times"></i></button></h2>
+    <div id="planet-detail-content">
+        <!-- Planet details will be loaded here -->
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Loading planet details...
+        </div>
+    </div>
+</div>
 {% endif %}
+
+<!-- CSS for Pagination -->
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        gap: 15px;
+    }
+    
+    .btn-small {
+        padding: 5px 10px;
+        background-color: #2a2a4a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-small:hover {
+        background-color: #3a3a6a;
+    }
+    
+    .btn-small.disabled {
+        background-color: #1a1a2a;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    #page-info {
+        font-size: 14px;
+        color: #ccc;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -111,7 +162,274 @@
         
         // Use the parsed data for plotting
         Plotly.newPlot('exoplanetChart', exoplanetChartData.data, exoplanetChartData.layout);
+        
+        // Pagination variables
+        const rowsPerPage = 25;
+        const rows = document.querySelectorAll('.planet-row');
+        const totalRows = rows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        let currentPage = 1;
+        
+        // Update page info
+        document.getElementById('total-pages').textContent = totalPages;
+        
+        // Show the first page initially
+        showPage(currentPage);
+        
+        // Add event listeners to pagination buttons
+        document.getElementById('prev-page').addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+        
+        document.getElementById('next-page').addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+        
+        // Function to show specified page
+        function showPage(pageNum) {
+            // Calculate start and end indices
+            const startIndex = (pageNum - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+            
+            // Hide all rows
+            rows.forEach(row => {
+                row.style.display = 'none';
+            });
+            
+            // Show only rows for current page
+            for (let i = startIndex; i < endIndex; i++) {
+                rows[i].style.display = '';
+            }
+            
+            // Update current page display
+            document.getElementById('current-page').textContent = pageNum;
+            
+            // Enable/disable pagination buttons
+            document.getElementById('prev-page').disabled = (pageNum === 1);
+            document.getElementById('next-page').disabled = (pageNum === totalPages);
+            
+            // Update button styles based on disabled state
+            if (pageNum === 1) {
+                document.getElementById('prev-page').classList.add('disabled');
+            } else {
+                document.getElementById('prev-page').classList.remove('disabled');
+            }
+            
+            if (pageNum === totalPages) {
+                document.getElementById('next-page').classList.add('disabled');
+            } else {
+                document.getElementById('next-page').classList.remove('disabled');
+            }
+        }
+        
+        // Add click event to planet rows
+        document.querySelectorAll('.planet-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const planetName = this.getAttribute('data-planet');
+                loadPlanetDetail(planetName);
+                
+                // Highlight the selected row
+                document.querySelectorAll('.planet-row').forEach(r => r.classList.remove('selected-row'));
+                this.classList.add('selected-row');
+            });
+        });
+        
+        // Close detail view when close button is clicked
+        document.getElementById('close-detail').addEventListener('click', function() {
+            document.getElementById('planet-detail-card').style.display = 'none';
+            document.querySelectorAll('.planet-row').forEach(r => r.classList.remove('selected-row'));
+        });
     });
+    
+    async function loadPlanetDetail(planetName) {
+        const detailCard = document.getElementById('planet-detail-card');
+        const detailContent = document.getElementById('planet-detail-content');
+        
+        // Show loading state
+        detailContent.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading planet details...</div>';
+        detailCard.style.display = 'block';
+        
+        try {
+            const response = await fetch(`/api/exoplanet/${encodeURIComponent(planetName)}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                detailContent.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i> ${data.error}</div>`;
+                return;
+            }
+            
+            // Format the planet details
+            let html = `
+                <div class="planet-header">
+                    <h3>${data.pl_name}</h3>
+                    <p>Orbiting ${data.hostname}</p>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-column">
+                        <h4><i class="fas fa-globe"></i> Planet Characteristics</h4>
+                        <table class="detail-table">
+                            <tr>
+                                <th>Discovery Method:</th>
+                                <td>${data.discoverymethod || 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Discovery Year:</th>
+                                <td>${data.disc_year || 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Radius:</th>
+                                <td>${data.pl_rade ? `${data.pl_rade.toFixed(2)} Earth radii` : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Mass:</th>
+                                <td>${data.pl_bmasse ? `${data.pl_bmasse.toFixed(2)} Earth masses` : (data['Planet Mass'] ? `${data['Planet Mass'].toFixed(2)} Earth masses` : 'Unknown')}</td>
+                            </tr>
+                            <tr>
+                                <th>Orbital Period:</th>
+                                <td>${data.pl_orbper ? `${data.pl_orbper.toFixed(1)} days` : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Eccentricity:</th>
+                                <td>${data.pl_orbeccen ? data.pl_orbeccen.toFixed(3) : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Equilibrium Temperature:</th>
+                                <td>${data.pl_eqt ? `${data.pl_eqt} K (${(data.pl_eqt - 273.15).toFixed(1)}°C)` : 'Unknown'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="detail-column">
+                        <h4><i class="fas fa-sun"></i> Host Star Information</h4>
+                        <table class="detail-table">
+                            <tr>
+                                <th>Spectral Type:</th>
+                                <td>${data.st_spectype || 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Stellar Mass:</th>
+                                <td>${data.st_mass ? `${data.st_mass.toFixed(2)} Solar masses` : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Stellar Radius:</th>
+                                <td>${data.st_rad ? `${data.st_rad.toFixed(2)} Solar radii` : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Effective Temperature:</th>
+                                <td>${data.st_teff ? `${data.st_teff} K` : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Metallicity:</th>
+                                <td>${data.st_met ? data.st_met.toFixed(3) : 'Unknown'}</td>
+                            </tr>
+                            <tr>
+                                <th>Distance from Earth:</th>
+                                <td>${data.sy_dist ? `${data.sy_dist.toFixed(2)} light years` : (data['Distance'] ? `${data['Distance'].toFixed(2)} light years` : 'Unknown')}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="habitability-section">
+                    <h4><i class="fas fa-home"></i> Habitability Assessment</h4>
+                    <div class="habitability-meter">
+                        <div class="habitability-progress" style="width: ${data.habitability_score * 100}%;">
+                            <span>${(data.habitability_score * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="habitability-notes">
+                        ${getHabitabilityNotes(data)}
+                    </div>
+                </div>
+            `;
+            
+            detailContent.innerHTML = html;
+            
+            // Smooth scroll to detail card
+            detailCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+        } catch (error) {
+            console.error('Error loading planet details:', error);
+            detailContent.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Failed to load planet details. Please try again.</div>`;
+        }
+    }
+    
+    function getHabitabilityNotes(planet) {
+        let notes = [];
+        
+        // Temperature assessment
+        if (planet.pl_eqt) {
+            const tempC = planet.pl_eqt - 273.15;
+            if (tempC >= 0 && tempC <= 50) {
+                notes.push(`<div class="note-item positive"><i class="fas fa-check-circle"></i> Temperature (${tempC.toFixed(1)}°C) is in a range that could support liquid water.</div>`);
+            } else if (tempC < 0) {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Temperature (${tempC.toFixed(1)}°C) is likely too cold for Earth-like life.</div>`);
+            } else {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Temperature (${tempC.toFixed(1)}°C) is likely too hot for Earth-like life.</div>`);
+            }
+        }
+        
+        // Size assessment
+        if (planet.pl_rade) {
+            if (planet.pl_rade < 0.5) {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Planet radius (${planet.pl_rade.toFixed(2)} Earth radii) may be too small to retain atmosphere.</div>`);
+            } else if (planet.pl_rade > 2.0) {
+                notes.push(`<div class="note-item warning"><i class="fas fa-exclamation-triangle"></i> Planet radius (${planet.pl_rade.toFixed(2)} Earth radii) suggests it may be a mini-Neptune rather than rocky.</div>`);
+            } else {
+                notes.push(`<div class="note-item positive"><i class="fas fa-check-circle"></i> Planet size (${planet.pl_rade.toFixed(2)} Earth radii) is compatible with being rocky and Earth-like.</div>`);
+            }
+        }
+        
+        // Mass assessment
+        if (planet.pl_bmasse || planet['Planet Mass']) {
+            const mass = planet.pl_bmasse || planet['Planet Mass'];
+            if (mass < 0.3) {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Planet mass (${mass.toFixed(2)} Earth masses) may be too low to retain atmosphere.</div>`);
+            } else if (mass > 5.0) {
+                notes.push(`<div class="note-item warning"><i class="fas fa-exclamation-triangle"></i> Planet mass (${mass.toFixed(2)} Earth masses) suggests high gravity and possible thick atmosphere.</div>`);
+            } else {
+                notes.push(`<div class="note-item positive"><i class="fas fa-check-circle"></i> Planet mass (${mass.toFixed(2)} Earth masses) is in a favorable range for habitability.</div>`);
+            }
+        }
+        
+        // Star type assessment
+        if (planet.st_spectype) {
+            const specType = planet.st_spectype.charAt(0);
+            if (specType === 'G') {
+                notes.push(`<div class="note-item positive"><i class="fas fa-check-circle"></i> Host star is a G-type (Sun-like) star, favorable for habitability.</div>`);
+            } else if (specType === 'K') {
+                notes.push(`<div class="note-item positive"><i class="fas fa-check-circle"></i> Host star is a K-type (Orange) star, generally stable and long-lived.</div>`);
+            } else if (specType === 'M') {
+                notes.push(`<div class="note-item warning"><i class="fas fa-exclamation-triangle"></i> Host star is an M-type (Red Dwarf) star. These stars are prone to flares but have extremely long lifetimes.</div>`);
+            } else if (specType === 'F') {
+                notes.push(`<div class="note-item warning"><i class="fas fa-exclamation-triangle"></i> Host star is an F-type star, slightly hotter and shorter-lived than our Sun.</div>`);
+            } else {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Host star type (${specType}) may not be ideal for habitability.</div>`);
+            }
+        }
+        
+        // Orbital period assessment
+        if (planet.pl_orbper) {
+            if (planet.pl_orbper < 10) {
+                notes.push(`<div class="note-item negative"><i class="fas fa-times-circle"></i> Very short orbital period (${planet.pl_orbper.toFixed(1)} days) suggests the planet is very close to its star.</div>`);
+            }
+        }
+        
+        // If no notes were generated
+        if (notes.length === 0) {
+            notes.push('<div class="note-item"><i class="fas fa-info-circle"></i> Insufficient data to assess habitability in detail.</div>');
+        }
+        
+        return notes.join('');
+    }
 </script>
 {% endif %}
 {% endblock %}
