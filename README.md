@@ -23,7 +23,7 @@ Cosmic Observer is a Python-powered Flask web application designed to immerse us
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/cosmic-observer.git
+   git clone https://github.com/HmbleCreator/cosmic-observer.git
    cd cosmic-observer
    ```
 
