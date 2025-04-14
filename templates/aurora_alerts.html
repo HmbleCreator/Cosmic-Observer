@@ -1,0 +1,72 @@
+<!-- templates/aurora_alerts.html - Aurora Visibility Alerts -->
+{% extends "layout.html" %}
+
+{% block title %}Aurora Visibility Alerts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2><i class="fas fa-meteor"></i> Aurora Visibility Alerts</h2>
+    <p>Check if the aurora (Northern or Southern Lights) might be visible from your location based on the current space weather conditions.</p>
+</div>
+
+<form method="post" action="/aurora-alerts">
+    <div class="form-group">
+        <label for="location">Enter Your Location (City, Country):</label>
+        <input type="text" id="location" name="location" placeholder="e.g., Oslo, Norway" required>
+    </div>
+    
+    <button type="submit" class="btn"><i class="fas fa-search-location"></i> Check Aurora Visibility</button>
+</form>
+
+{% if location_name %}
+<div class="card">
+    <h2>Aurora Visibility Results</h2>
+    <p>Location: <strong>{{ location_name }}</strong></p>
+    
+    <div class="aurora-probability">
+        {{ aurora_visibility }}%
+        <span class="probability-label">Chance of Aurora Visibility</span>
+    </div>
+    
+    {% if aurora_visibility >= 70 %}
+    <div class="alert alert-success">
+        <strong>High chance of aurora visibility!</strong> The current geomagnetic conditions are favorable for aurora viewing at your location. Look toward the northern horizon (northern hemisphere) or southern horizon (southern hemisphere) during dark hours.
+    </div>
+    {% elif aurora_visibility >= 30 %}
+    <div class="alert alert-success" style="background-color: rgba(255, 214, 0, 0.2); border-color: var(--star-yellow);">
+        <strong>Moderate chance of aurora visibility.</strong> There's some chance you might see auroras under good viewing conditions (clear, dark sky away from light pollution).
+    </div>
+    {% else %}
+    <div class="alert alert-error">
+        <strong>Low chance of aurora visibility.</strong> The current geomagnetic conditions are not favorable for aurora viewing at your location.
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Global Aurora Visibility Map</h2>
+    <div class="chart-container" id="auroraMap"></div>
+    <p><small>The color intensity indicates the probability of aurora visibility. Your location is marked with a red star.</small></p>
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-error">
+    <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if aurora_map %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Assign the template variable to a JavaScript variable
+        var auroraMapData = JSON.parse('{{ aurora_map|safe }}');
+        
+        // Use the parsed data for plotting
+        Plotly.newPlot('auroraMap', auroraMapData.data, auroraMapData.layout);
+    });
+</script>
+{% endif %}
+{% endblock %}

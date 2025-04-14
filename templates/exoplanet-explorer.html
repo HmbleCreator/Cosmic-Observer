@@ -1,0 +1,117 @@
+<!-- templates/exoplanet_explorer.html - Exoplanet Explorer -->
+{% extends "layout.html" %}
+
+{% block title %}Exoplanet Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2><i class="fas fa-globe"></i> Exoplanet Explorer</h2>
+    <p>Search and visualize exoplanets based on their characteristics. Filter by star type, planet mass, distance from Earth, and habitability score.</p>
+</div>
+
+<form method="post" action="/exoplanet-explorer">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="star_type">Star Type:</label>
+            <select id="star_type" name="star_type">
+                <option value="">Any</option>
+                <option value="G">G (Sun-like)</option>
+                <option value="K">K (Orange Dwarf)</option>
+                <option value="M">M (Red Dwarf)</option>
+                <option value="F">F (Yellow-White)</option>
+                <option value="A">A (White)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="min_habitability">Minimum Habitability Score (%):</label>
+            <input type="range" id="min_habitability" name="min_habitability" min="0" max="100" value="0" oninput="this.nextElementSibling.value = this.value">
+            <output>0</output>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label>Planet Mass (Earth masses):</label>
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="number" id="min_mass" name="min_mass" placeholder="Min" value="0" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <input type="number" id="max_mass" name="max_mass" placeholder="Max" value="100" min="0" step="0.1">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Distance from Earth (light years):</label>
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="number" id="min_distance" name="min_distance" placeholder="Min" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <input type="number" id="max_distance" name="max_distance" placeholder="Max" value="1000" min="0">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn"><i class="fas fa-search"></i> Search Exoplanets</button>
+</form>
+
+{% if exoplanet_chart %}
+<div class="card">
+    <h2>Exoplanet Visualization</h2>
+    <div class="chart-container" id="exoplanetChart"></div>
+    <p><small>Bubble size represents planet radius. Color represents habitability score (greener = more habitable).</small></p>
+</div>
+
+<div class="card">
+    <h2>Exoplanet Results</h2>
+    {% if exoplanet_data %}
+    <table class="planet-table">
+        <thead>
+            <tr>
+                <th>Planet Name</th>
+                <th>Star Type</th>
+                <th>Mass (Earth)</th>
+                <th>Radius (Earth)</th>
+                <th>Distance (ly)</th>
+                <th>Orbital Period (days)</th>
+                <th>Habitability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for planet in exoplanet_data %}
+            <tr>
+                <td>{{ planet.pl_name }}</td>
+                <td>{{ planet.st_spectype }}</td>
+                <td>{{ "%.2f"|format(planet.pl_masse) }}</td>
+                <td>{{ "%.2f"|format(planet.pl_rade) }}</td>
+                <td>{{ "%.1f"|format(planet.st_dist) }}</td>
+                <td>{{ "%.1f"|format(planet.pl_orbper) }}</td>
+                <td>{{ "%.1f"|format(planet.habitability_score) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No exoplanets found matching your criteria.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if exoplanet_chart %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Assign the template variable to a JavaScript variable
+        var exoplanetChartData = JSON.parse('{{ exoplanet_chart|safe }}');
+        
+        // Use the parsed data for plotting
+        Plotly.newPlot('exoplanetChart', exoplanetChartData.data, exoplanetChartData.layout);
+    });
+</script>
+{% endif %}
+{% endblock %}

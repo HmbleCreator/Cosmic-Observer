@@ -1,0 +1,51 @@
+<!-- templates/index.html - Homepage -->
+{% extends "layout.html" %}
+
+{% block title %}Space Exploration Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome to Cosmic Observer</h2>
+    <p>Explore the wonders of space with our interactive web application. Monitor real-time space weather, track aurora visibility based on your location, and discover exoplanets throughout our galaxy.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-sun"></i>
+        </div>
+        <h3 class="feature-title">Space Weather Dashboard</h3>
+        <p class="feature-description">Monitor real-time solar wind speed, KP index, and sunspot activity with interactive visualizations.</p>
+        <a href="/space-weather" class="btn"><i class="fas fa-chart-line"></i> View Dashboard</a>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-meteor"></i>
+        </div>
+        <h3 class="feature-title">Aurora Visibility Alerts</h3>
+        <p class="feature-description">Get personalized aurora visibility alerts based on your location and current space weather conditions.</p>
+        <a href="/aurora-alerts" class="btn"><i class="fas fa-map-marker-alt"></i> Check Visibility</a>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-globe"></i>
+        </div>
+        <h3 class="feature-title">Exoplanet Explorer</h3>
+        <p class="feature-description">Search and visualize exoplanets based on their characteristics, including mass, distance, and habitability score.</p>
+        <a href="/exoplanet-explorer" class="btn"><i class="fas fa-search"></i> Explore Planets</a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 75px;">
+    <h2>Latest Space Updates</h2>
+    <p>Stay informed with the latest developments in space exploration and astronomy:</p>
+    <ul>
+        <li>Solar activity is currently in a moderate phase with increasing sunspot activity.</li>
+        <li>The KP index is at 4, indicating possible aurora visibility at higher latitudes.</li>
+        <li>NASA's Exoplanet Archive recently added 50 new confirmed exoplanets to its database.</li>
+    </ul>
+    <p>Start exploring the features of Cosmic Observer using the navigation menu or the feature cards above!</p>
+</div>
+{% endblock %}

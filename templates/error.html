@@ -1,0 +1,22 @@
+<!-- templates/error.html - Error Page -->
+{% extends "layout.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2><i class="fas fa-exclamation-triangle"></i> Error</h2>
+    <p>An error occurred while processing your request:</p>
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    <p>Please go back and try again, or return to the <a href="/">homepage</a>.</p>
+</div>
+
+<div class="space-loader">
+    <div class="planet"></div>
+    <div class="planet"></div>
+    <div class="planet"></div>
+    <div class="planet"></div>
+</div>
+{% endblock %}

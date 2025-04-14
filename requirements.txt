@@ -1,0 +1,8 @@
+Flask
+requests
+pandas
+plotly
+numpy
+geopy
+Jinja2
+gunicorn
